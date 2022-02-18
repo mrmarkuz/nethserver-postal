@@ -1,0 +1,19 @@
+{
+  "id": "nethserver-postal",
+  "name": "Postal",
+  "summary": "Nethserver integration of Postal mail server",
+  "description": "Provides mail server",
+  "url": "",
+  "provides": ["nethserver-postal"],
+  "release": {
+    "version": "1.0.0"
+  },
+  "author": {
+    "name": "Markus Neuberger"
+  },
+  "infoapi": {
+    "path": "nethserver-postal/read"
+  },
+  "icon": "logo.png",
+  "external": true
+}

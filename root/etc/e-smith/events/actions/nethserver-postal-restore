@@ -1,0 +1,17 @@
+#!/bin/bash
+
+if [ -f /var/lib/nethserver/zammad/backup/zammad.sql ]; then
+    drop_sql=`mktemp`
+    chown postgres:postgres $drop_sql
+    # drop all existing connections to the db and block new ones
+    echo "UPDATE pg_database SET datallowconn = 'false' WHERE datname = 'zammad';" >> $drop_sql
+    echo "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'zammad';" >> $drop_sql
+    # drop the db, then recreate it
+    echo "DROP DATABASE zammad;" >> $drop_sql
+    echo "CREATE USER zammad; CREATE DATABASE zammad ENCODING 'UTF8' OWNER zammad TEMPLATE template0; GRANT ALL PRIVILEGES ON DATABASE zammad to zammad;" >> $drop_sql
+    # allow new connections to db
+    echo "UPDATE pg_database SET datallowconn = 'true' WHERE datname = 'zammad';" >> $drop_sql
+    su - postgres -c "psql < $drop_sql" >/dev/null
+    su - postgres -c "psql zammad < /var/lib/nethserver/zammad/backup/zammad.sql" >/dev/null
+    rm -f $drop_sql
+fi

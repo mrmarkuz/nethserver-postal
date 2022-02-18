@@ -1,0 +1,3 @@
+#!/bin/bash
+
+su - postgres -c "pg_dump zammad > /var/lib/nethserver/zammad/backup/zammad.sql"

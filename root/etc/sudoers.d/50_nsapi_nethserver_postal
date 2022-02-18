@@ -1,0 +1,7 @@
+#
+# nsapi_nethserver_postal
+#
+Cmnd_Alias NSAPI_NETHSERVER_POSTAL = \
+    /usr/libexec/nethserver/api/nethserver-postal/read
+
+Defaults!NSAPI_NETHSERVER_POSTAL !requiretty

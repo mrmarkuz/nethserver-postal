@@ -1,0 +1,168 @@
+#!/bin/bash
+
+# for elasticsearch update
+systemctl daemon-reload
+
+# rename zammad nginx conf if exists - disabled - templated
+#[ -f "/etc/nginx/conf.d/zammad.conf" ] && mv /etc/nginx/conf.d/zammad.conf /etc/nginx/conf.d/zammad.disabled
+
+# not needed, done by RPM - needed again to update the plugin
+/usr/share/elasticsearch/bin/elasticsearch-plugin -s remove ingest-attachment
+yes | /usr/share/elasticsearch/bin/elasticsearch-plugin -s install ingest-attachment
+
+# set vm.max_map_count for elasticsearch - thanks to CptCharlesG
+
+sysctl -w vm.max_map_count=262144
+
+# prepare postgres set postgres template1 to UTF8 for zammad rpm to work if database zammad does not exist
+
+su - postgres -c "psql -lqt | cut -d \| -f 1 | grep -q -w zammad"
+if [ $? -eq 1 ]; then
+   su - postgres -c "psql -c \"UPDATE pg_database SET encoding = pg_char_to_encoding('UTF8') WHERE datname = 'template1';\""
+fi
+
+# reset postgres template1 if database zammad exists to not make problems with other apps
+
+su - postgres -c "psql -lqt | cut -d \| -f 1 | grep -q -w zammad"
+if [ $? -eq 0 ]; then
+   su - postgres -c "psql -c \"UPDATE pg_database SET encoding = pg_char_to_encoding('SQL_ASCII') WHERE datname = 'template1';\""
+fi
+
+# if zammad already installed let it use port 3001 instead of 3000 to not use same port as ntopng
+
+[ -f "/usr/bin/zammad" ] && zammad config:set ZAMMAD_RAILS_PORT=3001
+
+# Setup elasticsearch index - thanks to CptCharlesG
+
+if [[ -f "/usr/bin/zammad" ]]; then
+   sudo -u zammad zammad run rails r "Setting.set('es_url', 'http://localhost:9200')"
+   sudo -u zammad zammad run rails r "Setting.set('es_index', Socket.gethostname.downcase + '_zammad')"
+   sudo -u zammad zammad run rails r "Setting.set('es_attachment_ignore', [ '.png', '.jpg', '.jpeg', '.mpeg', '.mpg', '.mov', '.bin', '.exe', '.box', '.mbox' ] )"
+   sudo -u zammad zammad run rails r "Setting.set('es_attachment_max_size_in_mb', 50)"
+   sudo -u zammad zammad run rake searchindex:rebuild
+fi
+
+
+## POSTAL START HERE
+
+# docker compose
+curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
+ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+
+git clone https://postalserver.io/start/install /opt/postal/install
+ln -s /opt/postal/install/bin/postal /usr/bin/postal
+
+
+#head /dev/urandom | tr -dc A-Za-z0-9 | head -c10 >> ~/pass.txt
+password=`perl -e "use NethServer::Password; print NethServer::Password::store('postal');"`
+
+# Run rabbitmq container
+docker run -d \
+   --name postal-rabbitmq \
+   -p 127.0.0.1:5672:5672 \
+   --restart always \
+   -e RABBITMQ_DEFAULT_USER=postal \
+   -e RABBITMQ_DEFAULT_PASS=$password \
+   -e RABBITMQ_DEFAULT_VHOST=postal \
+   rabbitmq:3.8
+
+# Run mariadb container
+docker run -d \
+   --name postal-mariadb \
+   -p 127.0.0.1:3307:3306 \
+   --restart always \
+   -e MARIADB_DATABASE=postal \
+   -e MARIADB_ROOT_PASSWORD=$password \
+   mariadb
+
+#Use custom virtualhost name or Nethserver domain name
+
+domain=`config getprop postal VirtualHost`
+if $domain=="" domain=`config getprop postal.DomainName`
+
+# Bootstrap Postal - maybe only do it once?
+postal bootstrap $domain
+
+
+### CONTINUE HERE
+
+sed -i '3s/  use_ip_pools: .*/  use_ip_pools: true/' /opt/postal/config/postal.yml;
+sed -i '13s/  bind_address: .*/  bind_address: 172.17.0.1/' /opt/postal/config/postal.yml;
+sed -i '18s/  port: .*/  port: 465/' /opt/postal/config/postal.yml;
+sed -i "41s/host: .*/host: $(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' `docker ps -aqf "name=postal-rabbitmq"`)/g" /opt/postal/config/postal.yml;
+sed -i "26s/host: .*/host: $(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' `docker ps -aqf "name=postal-mariadb"`)/g" /opt/postal/config/postal.yml;
+sed -i '52s/smtp_server_hostname: .*/smtp_server_hostname: '"postal.$domain"'/g' /opt/postal/config/postal.yml;
+sed -i "34s/host: .*/host: $(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' `docker ps -aqf "name=postal-mariadb"`)/g" /opt/postal/config/postal.yml;
+sed -i '56s/track_domain: .*/track_domain: '"track.postal.$domain"'/g' /opt/postal/config/postal.yml;
+sed -i '55s/route_domain: .*/route_domain: '"routes.postal.$domain"'/g' /opt/postal/config/postal.yml;
+sed -i '54s/return_path: .*/return_path: '"return.postal.$domain"'/g' /opt/postal/config/postal.yml;
+sed -i '53s/spf_include: .*/spf_include: '"spf.postal.$domain"'/g' /opt/postal/config/postal.yml;
+sed -i '51s/  - .*/  - '"postal.$domain"'/g' /opt/postal/config/postal.yml;
+sed -i "43s/password: .*/password: $(cat ~/pass.txt)/g" /opt/postal/config/postal.yml;
+sed -i "28s/password: .*/password: $(cat ~/pass.txt)/g" /opt/postal/config/postal.yml;
+sed -i "36s/password: .*/password: $(cat ~/pass.txt)/g" /opt/postal/config/postal.yml;
+
+
+
+postal initialize
+
+wait
+
+postal make-user
+
+wait
+
+echo -e
+echo "Database setup, initialised and user setup successfully please wait while I start Postal"
+echo -e
+sleep 0.2s
+
+postal start
+
+wait
+
+
+echo -e
+echo "Ok Done."
+echo -e
+sleep 0.2s
+
+echo -e
+echo "Now I'll create a script to clean and automate the start of Postal on reboot"
+echo -e
+sleep 0.2s
+
+echo "#!/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+LD_LIBRARY_PATH=/usr/local/lib
+/usr/bin/postal status | grep Exit && date >> ~/logpostal.log
+/usr/bin/postal status | grep Exit && /usr/bin/postal start" > ~/postalCheck.sh
+
+echo -e
+echo "Ok Done, now lets make the script executable."
+echo -e
+sleep 0.2s
+
+chmod +x ~/postalCheck.sh
+
+echo -e
+echo "Ok Done, now I'll add it to crontab."
+echo -e
+sleep 0.2s
+
+echo "@reboot sleep 60 && ~/postalCheck.sh" >> /etc/crontab
+
+echo -e
+echo "Ok Done."
+echo -e
+sleep 0.2s
+
+
+
+echo -e
+echo "Thank you for your patience, please open a web browser to https://postal.$domain"
+echo "Please take note of your mariadb and rabbitmq passwd $(cat pass.txt) and press enter so it can be deleted for security"
+wait
+echo "the password file will now be deleted"
+rm -f ~/pass.txt

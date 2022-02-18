@@ -1,0 +1,40 @@
+{
+if (($postal{'status'} || 'disabled') eq 'enabled'){
+my $vhost = $postal{VirtualHost} || postal.$DomainName;
+
+$OUT .=<<"EOF";
+<VirtualHost *:443>
+    ServerName $vhost
+    RewriteEngine On
+    SSLEngine On
+    ProxyPassMatch ^/.well-known/acme-challenge/ !
+    RequestHeader set X-Forwarded-Proto "https"
+    ProxyPass / http://172.17.0.1:5000/
+    ProxyPassReverse / http://172.17.0.1:5000/
+    ProxyPreserveHost On
+    ProxyErrorOverride Off
+</VirtualHost>
+
+<VirtualHost *:80>
+    ServerName $vhost
+    RewriteEngine On
+    ProxyPassMatch ^/.well-known/acme-challenge/ !
+    RewriteCond %{HTTPS} !=on
+    RewriteRule (.*) https://%{SERVER_NAME}$1 [R,L]
+</VirtualHost>
+
+<VirtualHost *:80>
+    IncludeOptional conf.d/default-virtualhost.inc
+</VirtualHost>
+EOF
+}
+else {
+    $OUT .=<<'EOF';
+# Postal is disabled
+# You can enable it with
+# config setprop postal status enabled
+# signal-event nethserver-postal-update
+EOF
+}
+
+}
