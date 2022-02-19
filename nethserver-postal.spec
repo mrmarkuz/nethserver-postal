@@ -20,7 +20,7 @@ NethServer Postal integration
 
 %build
 perl createlinks
-mkdir -p root/var/lib/nethserver/postal/backup
+mkdir -p root/var/lib/nethserver/postal
 
 %install
 rm -rf %{buildroot}
@@ -35,7 +35,7 @@ cp -a ui/* %{buildroot}/usr/share/cockpit/%{name}/
 
 (cd root; find . -depth -print | cpio -dump %{buildroot})
 %{genfilelist} \
-  --dir /var/lib/nethserver/postal/backup 'attr(755,root,root)' \
+  --dir /var/lib/nethserver/postal 'attr(755,root,root)' \
   --file /etc/sudoers.d/50_nsapi_nethserver_postal 'attr(0440,root,root)' \
   --file /usr/libexec/nethserver/api/%{name}/read 'attr(775,root,root)' \
 %{buildroot} > %{name}-%{version}-filelist
