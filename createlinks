@@ -12,7 +12,9 @@ my $event = "nethserver-postal-update";
 event_actions($event, 
     'initialize-default-databases' => '00',
     'nethserver-postal-conf' => '02' #must be executed before template expansion
+    'nethserver-postal-init' => '98' #execute after docker running
 );
+
 event_templates($event, 
     '/etc/httpd/conf.d/postal.conf'
 );
