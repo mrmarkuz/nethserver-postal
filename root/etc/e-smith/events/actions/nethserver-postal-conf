@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# dirty hack to be able to access docker containers like postal-mariadb
+signal-event firewall-adjust
+
 # docker compose
 curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
@@ -21,7 +24,6 @@ docker run -d \
    -e RABBITMQ_DEFAULT_PASS=$password \
    -e RABBITMQ_DEFAULT_VHOST=postal \
    rabbitmq:3.8
-wait
 
 # Run mariadb container
 docker run -d \
@@ -31,7 +33,6 @@ docker run -d \
    -e MARIADB_DATABASE=postal \
    -e MARIADB_ROOT_PASSWORD=$password \
    mariadb
-wait
 
 #Use custom virtualhost name or Nethserver domain name
 
@@ -40,7 +41,6 @@ if [[ $domain = '' ]]; then domain=`config get DomainName`; fi
 
 # Bootstrap Postal - maybe only do it once?
 postal bootstrap postal.$domain
-wait
 
 # Edit postal.yml
 
@@ -59,3 +59,20 @@ sed -i '51s/  - .*/  - '"postal.$domain"'/g' /opt/postal/config/postal.yml;
 sed -i "43s/password: .*/password: $password/g" /opt/postal/config/postal.yml;
 sed -i "28s/password: .*/password: $password/g" /opt/postal/config/postal.yml;
 sed -i "36s/password: .*/password: $password/g" /opt/postal/config/postal.yml;
+
+# Initialize postal
+postal initialize
+
+# start postal
+postal start
+
+# Create start script and cronize it - replace with systemd when possible
+echo "#!/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+LD_LIBRARY_PATH=/usr/local/lib
+/usr/bin/postal status | grep Exit && date >> ~/logpostal.log
+/usr/bin/postal status | grep Exit && /usr/bin/postal start" > ~/postalCheck.sh
+
+chmod +x ~/postalCheck.sh
+
+echo "@reboot sleep 60 && ~/postalCheck.sh" >> /etc/crontab

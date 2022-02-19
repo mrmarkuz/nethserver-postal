@@ -6,7 +6,7 @@ namespace NethServer\Module\Dashboard\Applications;
  *
  * @author Markus Neuberger
  */
-class Zammad extends \Nethgui\Module\AbstractModule implements \NethServer\Module\Dashboard\Interfaces\ApplicationInterface
+class Postal extends \Nethgui\Module\AbstractModule implements \NethServer\Module\Dashboard\Interfaces\ApplicationInterface
 {
 
     public function getName()
