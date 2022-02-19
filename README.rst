@@ -8,23 +8,29 @@ Requirements
 ============
 
 You need a dedicated virtualhost like postal.<DOMAIN>
+Nethserver-postal uses postal.<NETHSERVERDOMAIN> by default.
 
 Create admin user
 ==================
+
+To create an admin user execute
 
   postal make-user
 
 Access
 ======
 
-Access https://postal.<YOURDOMAIN>
+Access postal via https://postal.<YOURDOMAIN>
 
 Domain prop
 ===========
 
-To use a custom domain you may set a VirtualHost:
+To use a custom domain like postal.<CUSTOMDOMAIN> you may set the VirtualHost prop:
 
   config setprop postal VirtualHost domain.tld
+
+Apply config
+
   signal-event nethserver-postal-update
 
 Todos
@@ -32,3 +38,6 @@ Todos
 
 * backup
 * postal systemd service
+* create postal.yml template instead of sed because file may change in a future version
+* create services
+* set ports in config files from services

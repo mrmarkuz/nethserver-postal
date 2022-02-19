@@ -1,10 +1,11 @@
 {
 if (($postal{'status'} || 'disabled') eq 'enabled'){
-my $vhost = $postal{VirtualHost} || postal.$DomainName;
+my $vhost = $postal{VirtualHost} || $DomainName;
+$vhost = 'postal.'.$vhost;
 
 $OUT .=<<"EOF";
 <VirtualHost *:443>
-    ServerName postal.$vhost
+    ServerName $vhost
     RewriteEngine On
     SSLEngine On
     ProxyPassMatch ^/.well-known/acme-challenge/ !
@@ -16,7 +17,7 @@ $OUT .=<<"EOF";
 </VirtualHost>
 
 <VirtualHost *:80>
-    ServerName postal.$vhost
+    ServerName $vhost
     RewriteEngine On
     ProxyPassMatch ^/.well-known/acme-challenge/ !
     RewriteCond %{HTTPS} !=on
