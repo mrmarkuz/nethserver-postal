@@ -4,7 +4,7 @@ my $vhost = $postal{VirtualHost} || postal.$DomainName;
 
 $OUT .=<<"EOF";
 <VirtualHost *:443>
-    ServerName $vhost
+    ServerName postal.$vhost
     RewriteEngine On
     SSLEngine On
     ProxyPassMatch ^/.well-known/acme-challenge/ !
@@ -16,7 +16,7 @@ $OUT .=<<"EOF";
 </VirtualHost>
 
 <VirtualHost *:80>
-    ServerName $vhost
+    ServerName postal.$vhost
     RewriteEngine On
     ProxyPassMatch ^/.well-known/acme-challenge/ !
     RewriteCond %{HTTPS} !=on

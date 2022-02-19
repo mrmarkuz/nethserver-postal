@@ -1,7 +1,7 @@
 Summary: NethServer postal integration
 Name: nethserver-postal
 Version: 1.0.0
-Release: 7%{?dist}
+Release: 1%{?dist}
 License: GPL
 URL: %{url_prefix}/%{name}
 Source0: %{name}-%{version}.tar.gz
