@@ -60,6 +60,9 @@ sed -i "43s/password: .*/password: $password/g" /opt/postal/config/postal.yml;
 sed -i "28s/password: .*/password: $password/g" /opt/postal/config/postal.yml;
 sed -i "36s/password: .*/password: $password/g" /opt/postal/config/postal.yml;
 
+# wait until mariadb is started - needs to be optimized
+sleep 30
+
 # Initialize postal
 postal initialize
 wait
