@@ -36,8 +36,9 @@ Apply config
 Todos
 =====
 
-* backup
+* backup - maybe use local mariadb to have it included in backup
 * postal systemd service
 * create postal.yml template instead of sed because file may change in a future version
 * create services
 * set ports in config files from services
+
