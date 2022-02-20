@@ -2,7 +2,7 @@
 namespace NethServer\Module\Dashboard\Applications;
 
 /**
- * Nextcloud dashboard application widget
+ * Postal dashboard application widget
  *
  * @author Markus Neuberger
  */
@@ -17,8 +17,8 @@ class Postal extends \Nethgui\Module\AbstractModule implements \NethServer\Modul
     public function getInfo()
     {
          // $host = explode(':',$_SERVER['HTTP_HOST']);
-         $host = $this->getPlatform()->getDatabase('configuration')->getProp('postal', 'VirtualHost');
-
+         $host = "postal." + $this->getPlatform()->getDatabase('configuration')->getProp('postal', 'VirtualHost');
+         if ($host == "") $host = "postal." + $this->getPlatform()->get('DomainName');
          return array(
             'url' => "https://".$host
          );
