@@ -18,7 +18,8 @@ event_templates($event,
     '/etc/httpd/conf.d/postal.conf'
 );
 event_services($event, 
-    'httpd' => 'restart'
+    'httpd' => 'restart',
+    'postal' => 'restart'
 );
 
 #--------------------------------------------------
@@ -37,4 +38,4 @@ $event = 'post-restore-data';
 
 event_actions($event, 'nethserver-postal-restore' => 50);
 
-#event_services($event, 'postal' => 'restart');
+event_services($event, 'postal' => 'restart');

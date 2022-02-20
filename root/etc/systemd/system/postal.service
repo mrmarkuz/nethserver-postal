@@ -1,0 +1,11 @@
+[Unit]
+Description=Postal
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/postal start
+ExecStop=/usr/bin/postal stop
+
+[Install]
+WantedBy=multi-user.target
