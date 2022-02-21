@@ -1,5 +1,6 @@
 [Unit]
 Description=Postal
+After=network.target docker.service shorewall.service
 
 [Service]
 Type=oneshot
