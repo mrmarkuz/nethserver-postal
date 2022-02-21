@@ -1,3 +1,4 @@
 #!/bin/bash
 
-docker exec postal-mariadb mysqldump -uroot -p$(cat /var/lib/nethserver/secrets/postal) --all-databases > /var/lib/nethserver/postal/postaldbs.sql
+#docker exec postal-mariadb mysqldump -uroot -p$(cat /var/lib/nethserver/secrets/postal) --all-databases > /var/lib/nethserver/postal/postaldbs.sql
+docker exec postal-mariadb sh -c 'exec mysqldump --all-databases -uroot -p"'$(cat /var/lib/nethserver/secrets/postal)'"' > /var/lib/nethserver/postal/postaldbs.sql

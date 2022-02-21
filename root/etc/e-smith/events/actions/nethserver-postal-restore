@@ -1,3 +1,4 @@
 #!/bin/bash
 
-docker exec postal-mariadb mysql -uroot -p$(cat /var/lib/nethserver/secrets/postal) < /var/lib/nethserver/postal/postaldbs.sql
+#docker exec postal-mariadb mysql -uroot -p$(cat /var/lib/nethserver/secrets/postal) < /var/lib/nethserver/postal/postaldbs.sql
+docker exec -i postal-mariadb sh -c 'exec mysql -uroot -p"'$(cat /var/lib/nethserver/secrets/postal)'"' < /var/lib/nethserver/postal/$(ls -t postaldbs*.sql | head -1)
