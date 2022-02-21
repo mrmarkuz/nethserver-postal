@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# dirty hack to be able to access docker containers like postal-mariadb
-signal-event firewall-adjust
-
 # docker compose
 curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
@@ -40,6 +37,9 @@ docker run -d \
    -e MARIADB_ROOT_PASSWORD=$password \
    mariadb
 
+# dirty hack to be able to access docker containers like postal-mariadb
+signal-event firewall-adjust
+
 #Use custom virtualhost name or Nethserver domain name
 domain=`config getprop postal VirtualHost`
 if [[ $domain = '' ]]; then domain=`config get DomainName`; fi
@@ -48,4 +48,4 @@ if [[ $domain = '' ]]; then domain=`config get DomainName`; fi
 postal bootstrap postal.$domain
 
 # Initialize postal - on error initialize again
-postal initialize || postal initialize
+postal initialize
