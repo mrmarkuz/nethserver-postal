@@ -36,8 +36,6 @@ Access postal via https://postal.<YOURDOMAIN>
 Todos
 =====
 
-* backup - maybe use local mariadb to have it included in backup
-* postal systemd service
-* create postal.yml template instead of sed because file may change in a future version
-* create services
+* backup - backup volumes or db
+* create services for opening firewall
 * set ports in config files from services

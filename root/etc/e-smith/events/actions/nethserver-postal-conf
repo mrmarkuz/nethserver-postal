@@ -40,8 +40,10 @@ docker run -d \
    -e MARIADB_ROOT_PASSWORD=$password \
    mariadb
 
-#Use custom virtualhost name or Nethserver domain name
+#wait for container start
+sleep 10
 
+#Use custom virtualhost name or Nethserver domain name
 domain=`config getprop postal VirtualHost`
 if [[ $domain = '' ]]; then domain=`config get DomainName`; fi
 
