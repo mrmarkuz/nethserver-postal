@@ -11,7 +11,7 @@ general:
 
 web:
   # The host that the management interface will be available on
-  host: postal.domain.local
+  host: postal.{ $vhost }
   # The protocol that requests to the management interface should happen on
   protocol: https
 
