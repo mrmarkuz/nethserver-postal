@@ -48,38 +48,5 @@ if [[ $domain = '' ]]; then domain=`config get DomainName`; fi
 # Bootstrap Postal - maybe only do it once?
 postal bootstrap postal.$domain
 
-# Edit postal.yml
-
-sed -i '3s/  use_ip_pools: .*/  use_ip_pools: true/' /opt/postal/config/postal.yml;
-sed -i '13s/  bind_address: .*/  bind_address: 172.17.0.1/' /opt/postal/config/postal.yml;
-sed -i '18s/  port: .*/  port: 465/' /opt/postal/config/postal.yml;
-sed -i "41s/host: .*/host: $(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' `docker ps -aqf "name=postal-rabbitmq"`)/g" /opt/postal/config/postal.yml;
-sed -i "26s/host: .*/host: $(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' `docker ps -aqf "name=postal-mariadb"`)/g" /opt/postal/config/postal.yml;
-sed -i '52s/smtp_server_hostname: .*/smtp_server_hostname: '"postal.$domain"'/g' /opt/postal/config/postal.yml;
-sed -i "34s/host: .*/host: $(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' `docker ps -aqf "name=postal-mariadb"`)/g" /opt/postal/config/postal.yml;
-sed -i '56s/track_domain: .*/track_domain: '"track.postal.$domain"'/g' /opt/postal/config/postal.yml;
-sed -i '55s/route_domain: .*/route_domain: '"routes.postal.$domain"'/g' /opt/postal/config/postal.yml;
-sed -i '54s/return_path: .*/return_path: '"return.postal.$domain"'/g' /opt/postal/config/postal.yml;
-sed -i '53s/spf_include: .*/spf_include: '"spf.postal.$domain"'/g' /opt/postal/config/postal.yml;
-sed -i '51s/  - .*/  - '"postal.$domain"'/g' /opt/postal/config/postal.yml;
-sed -i "43s/password: .*/password: $password/g" /opt/postal/config/postal.yml;
-sed -i "28s/password: .*/password: $password/g" /opt/postal/config/postal.yml;
-sed -i "36s/password: .*/password: $password/g" /opt/postal/config/postal.yml;
-
 # Initialize postal
 postal initialize
-
-# Systemd now cares about postal start
-# start postal
-#postal start
-
-# Create start script and cronize it - replace with systemd when possible
-#echo "#!/bin/bash
-#PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-#LD_LIBRARY_PATH=/usr/local/lib
-#/usr/bin/postal status | grep Exit && date >> ~/logpostal.log
-#/usr/bin/postal status | grep Exit && /usr/bin/postal start" > ~/postalCheck.sh
-
-#chmod +x ~/postalCheck.sh
-
-#echo "@reboot sleep 60 && ~/postalCheck.sh" >> /etc/crontab
