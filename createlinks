@@ -15,8 +15,10 @@ event_actions($event,
 );
 
 event_templates($event, 
-    '/etc/httpd/conf.d/postal.conf'
+    '/etc/httpd/conf.d/postal.conf',
+    '/opt/postal/config/postal.yml'
 );
+
 event_services($event, 
     'httpd' => 'restart',
     'postal' => 'restart'
