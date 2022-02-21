@@ -15,9 +15,14 @@ ln -s /opt/postal/install/bin/postal /usr/bin/postal
 #head /dev/urandom | tr -dc A-Za-z0-9 | head -c10 >> ~/pass.txt
 password=`perl -e "use NethServer::Password; print NethServer::Password::store('postal');"`
 
+# Create dirs for volumes
+mkdir -p /opt/postal/mariadb
+mkdir -p /opt/postal/rabbitmq
+
 # Run rabbitmq container
 docker run -d \
    --name postal-rabbitmq \
+   -v /opt/postal/rabbitmq:/var/lib/rabbitmq \
    -p 127.0.0.1:5672:5672 \
    --restart always \
    -e RABBITMQ_DEFAULT_USER=postal \
@@ -28,6 +33,7 @@ docker run -d \
 # Run mariadb container
 docker run -d \
    --name postal-mariadb \
+   -v /opt/postal/mariadb:/var/lib/mysql \
    -p 127.0.0.1:3307:3306 \
    --restart always \
    -e MARIADB_DATABASE=postal \
