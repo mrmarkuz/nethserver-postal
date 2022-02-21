@@ -40,9 +40,6 @@ docker run -d \
    -e MARIADB_ROOT_PASSWORD=$password \
    mariadb
 
-#wait for container start
-sleep 10
-
 #Use custom virtualhost name or Nethserver domain name
 domain=`config getprop postal VirtualHost`
 if [[ $domain = '' ]]; then domain=`config get DomainName`; fi
@@ -50,5 +47,5 @@ if [[ $domain = '' ]]; then domain=`config get DomainName`; fi
 # Bootstrap Postal - maybe only do it once?
 postal bootstrap postal.$domain
 
-# Initialize postal
-postal initialize
+# Initialize postal - on error initialize again
+postal initialize || postal initialize
