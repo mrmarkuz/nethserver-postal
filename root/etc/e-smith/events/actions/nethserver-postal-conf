@@ -1,5 +1,22 @@
 #!/bin/bash
 
+# define firewall services to be able to manage ports in web UI
+postaldns=`config getprop postal-dns TCPPort`
+if [[ $postaldns = '' ]]; then postaldns=53; fi
+config set postal-dns service TCPPort $postaldns status enabled access red
+
+postalsmtp=`config getprop postal-smtp TCPPort`
+if [[ $postalsmtp = '' ]]; then postalsmtp=2525; fi
+config set postal-smtp service TCPPort $postalsmtp status enabled access green,red
+
+postalmariadb=`config getprop postal-mariadb TCPPort`
+if [[ $postalmariadb = '' ]]; then postalmariadb=3307; fi
+config set postal-mariadb service TCPPort $postalmariadb status enabled access localhost
+
+postalrabbitmq=`config getprop postal-rabbitmq TCPPort`
+if [[ $postalrabbitmq = '' ]]; then postalrabbitmq=5673; fi
+config set postal-rabbitmq service TCPPort $postalrabbitmq status enabled access localhost
+
 # dirty hack to be able to access docker containers like postal-mariadb
 signal-event firewall-adjust
 
@@ -23,7 +40,7 @@ mkdir -p /opt/postal/rabbitmq
 docker run -d \
    --name postal-rabbitmq \
    -v /opt/postal/rabbitmq:/var/lib/rabbitmq \
-   -p 127.0.0.1:5672:5672 \
+   -p 127.0.0.1:`config getprop postal-rabbitmq TCPPort`:5672 \
    --restart always \
    -e RABBITMQ_DEFAULT_USER=postal \
    -e RABBITMQ_DEFAULT_PASS=$password \
@@ -34,7 +51,7 @@ docker run -d \
 docker run -d \
    --name postal-mariadb \
    -v /opt/postal/mariadb:/var/lib/mysql \
-   -p 127.0.0.1:3307:3306 \
+   -p 127.0.0.1:`config getprop postal-mariadb TCPPort`:3306 \
    --restart always \
    -e MARIADB_DATABASE=postal \
    -e MARIADB_ROOT_PASSWORD=$password \

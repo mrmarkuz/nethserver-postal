@@ -18,11 +18,11 @@ web:
 web_server:
   # Specify configuration for the Postal web server
   bind_address: 172.17.0.1
-  port: 5000
+  port: { ${'postal'}{'TCPPort'} || 5000 }
 
 smtp_server:
   # Specify configuration to the Postal SMTP server
-  port: 465
+  port: { ${'postal-smtp'}{'TCPPort'} || 2525 }
 
 logging:
   # Specify options for the logging
@@ -31,7 +31,7 @@ logging:
 main_db:
   # Specify the connection details for your MySQL database
   host: 127.0.0.1
-  port: 3307
+  port: { ${'postal-mariadb'}{'TCPPort'} || 3307 }
   username: root
   password: { $password }
   database: postal
@@ -40,7 +40,7 @@ message_db:
   # Specify the connection details for your MySQL server that will be house the
   # message databases for mail servers.
   host: 127.0.0.1
-  port: 3307
+  port: { ${'postal-mariadb'}{'TCPPort'} || 3307 }
   username: root
   password: { $password }
   prefix: postal
@@ -48,6 +48,7 @@ message_db:
 rabbitmq:
   # Specify connection details for your RabbitMQ server
   host: 127.0.0.1
+  port: { ${'postal-rabbitmq'}{'TCPPort'} || 5673 }
   username: postal
   password: { $password }
   vhost: postal
@@ -69,7 +70,7 @@ smtp:
   # system to users. You can configure this to use a Postal mail server once the
   # your installation has been set up.
   host: 127.0.0.1
-  port: 2525
+  port: 2526
   username: # Complete when Postal is running and you can
   password: # generate the credentials within the interface.
   from_name: Postal
