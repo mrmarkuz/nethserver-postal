@@ -5,9 +5,11 @@ action=$(jq -r .action <<<"$input")
 
 if [[ $action == "app-info" ]]; then
     if [[ $(/sbin/e-smith/config getprop postal status) == "enabled" ]]; then
-        vhost=postal.$(/sbin/e-smith/config getprop postal VirtualHost)
-        if [[ $vhost = 'postal.' ]]; then vhost=postal.$(/sbin/e-smith/config get DomainName); fi
-        printf '{"url":"%s"}' "https://${vhost}"
+        subdomain=$(/sbin/e-smith/config getprop postal subdomain)
+        if [[ $subdomain = "" ]]; then subdomain="postal"; fi
+        vhost=$(/sbin/e-smith/config getprop postal VirtualHost)
+        if [[ $vhost = "" ]]; then vhost=$(/sbin/e-smith/config get DomainName); fi
+        printf '{"url":"%s"}' "https://$subdomain.$vhost"
     else
         printf '{}'
     fi

@@ -50,5 +50,10 @@ cp -a ui/* %{buildroot}/usr/share/cockpit/%{name}/
 %dir %{_nseventsdir}/%{name}-update
 
 %changelog
-* Tue Feb 18 2022 Markus Neuberger <info@markusneuberger.at> - 1.0.0-1
+* Sun Apr 10 2022 Markus Neuberger <info@markusneuberger.at> - 1.0.0-1
 - Init
+- Fix services
+- Add virtualhost and subdomain prop
+- Add mailuser and mailpass prop
+- Fix letsencrypt
+- Fix application button

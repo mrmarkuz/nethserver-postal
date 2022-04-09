@@ -3,6 +3,9 @@ use NethServer::Password;
 our $password = NethServer::Password::store('postal');
 our $secret = NethServer::Password->new('postalsecret',{'length' => 256})->save()->getAscii();
 our $vhost = $postal{'VirtualHost'} || $DomainName;
+our $subdomain = $postal{'subdomain'} || 'postal';
+our $mailuser = $postal{'mailuser'} || '# set mailuser in postal config db';
+our $mailpass =	$postal{'mailpass'} || '# set mailpass in postal config db';
 '';
 }
 general:
@@ -58,23 +61,23 @@ dns:
   # https://github.com/atech/postal/wiki/Domains-&-DNS-Configuration for further
   # information about these.
   mx_records:
-    - postal.{ $vhost }
-  smtp_server_hostname: postal.{ $vhost }
-  spf_include: spf.postal.{ $vhost }
-  return_path: return.postal.{ $vhost }
-  route_domain: routes.postal.{ $vhost }
-  track_domain: track.postal.{ $vhost }
+    - { $subdomain }.{ $vhost }
+  smtp_server_hostname: { $subdomain }.{ $vhost }
+  track_domain: { $subdomain }.{ $vhost }
+  spf_include: spf.{ $subdomain }.{ $vhost }
+  return_path: rp.{ $subdomain }.{ $vhost }
+  route_domain: routes.{ $subdomain }.{ $vhost }
 
 smtp:
   # Specify an SMTP server that can be used to send messages from the Postal management
   # system to users. You can configure this to use a Postal mail server once the
   # your installation has been set up.
   host: 127.0.0.1
-  port: 2526
-  username: # Complete when Postal is running and you can
-  password: # generate the credentials within the interface.
+  port: { ${'postal-smtp'}{'TCPPort'} }
+  username: { $mailuser }
+  password: { $mailpass }
   from_name: Postal
-  from_address: postal.{ $vhost }
+  from_address: { $subdomain }.{ $vhost }
 
 rails:
   # This is generated automatically by the config initialization. It should be a random

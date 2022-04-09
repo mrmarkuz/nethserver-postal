@@ -1,14 +1,15 @@
 {
 if (($postal{'status'} || 'disabled') eq 'enabled'){
 my $vhost = $postal{VirtualHost} || $DomainName;
-$vhost = 'postal.'.$vhost;
+my $subdomain = $postal{subdomain} || 'postal';
+$vhost = $subdomain.'.'.$vhost;
 
 $OUT .=<<"EOF";
 <VirtualHost *:443>
     ServerName $vhost
     RewriteEngine On
     SSLEngine On
-    ProxyPassMatch ^/.well-known/acme-challenge/ !
+    RedirectMatch 301 ^(?!/.well-known/acme-challenge/).* https://$subdomain.$vhost
     RequestHeader set X-Forwarded-Proto "https"
     ProxyPass / http://172.17.0.1:5000/
     ProxyPassReverse / http://172.17.0.1:5000/
@@ -19,7 +20,7 @@ $OUT .=<<"EOF";
 <VirtualHost *:80>
     ServerName $vhost
     RewriteEngine On
-    ProxyPassMatch ^/.well-known/acme-challenge/ !
+    RedirectMatch 301 ^(?!/.well-known/acme-challenge/).* https://$subdomain.$vhost
     RewriteCond %{HTTPS} !=on
     RewriteRule (.*) https://%{SERVER_NAME}$1 [R,L]
 </VirtualHost>
