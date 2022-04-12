@@ -1,12 +1,11 @@
 {
 if (($postal{'status'} || 'disabled') eq 'enabled'){
-my $vhost = $postal{VirtualHost} || $DomainName;
-my $subdomain = $postal{subdomain} || 'postal';
-$vhost = $subdomain.'.'.$vhost;
+my $vhost = ($postal{VirtualHost} || $DomainName);
+my $subdomain = ($postal{subdomain} || 'postal');
 
 $OUT .=<<"EOF";
 <VirtualHost *:443>
-    ServerName $vhost
+    ServerName $subdomain.$vhost
     RewriteEngine On
     SSLEngine On
     RedirectMatch 301 ^(?!/.well-known/acme-challenge/).* https://$subdomain.$vhost
@@ -18,7 +17,7 @@ $OUT .=<<"EOF";
 </VirtualHost>
 
 <VirtualHost *:80>
-    ServerName $vhost
+    ServerName $subdomain.$vhost
     RewriteEngine On
     RedirectMatch 301 ^(?!/.well-known/acme-challenge/).* https://$subdomain.$vhost
     RewriteCond %{HTTPS} !=on
