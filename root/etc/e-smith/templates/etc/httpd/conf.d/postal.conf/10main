@@ -4,28 +4,24 @@ my $vhost = ($postal{VirtualHost} || $DomainName);
 my $subdomain = ($postal{subdomain} || 'postal');
 
 $OUT .=<<"EOF";
+<VirtualHost *:80>
+    IncludeOptional conf.d/default-virtualhost.inc
+</VirtualHost>
+
+<VirtualHost *:80>
+    ServerName $subdomain.$vhost
+    RedirectMatch 301 ^(?!/.well-known/acme-challenge/).* https://$subdomain.$vhost
+</VirtualHost>
+
 <VirtualHost *:443>
     ServerName $subdomain.$vhost
     RewriteEngine On
     SSLEngine On
-    RedirectMatch 301 ^(?!/.well-known/acme-challenge/).* https://$subdomain.$vhost
     RequestHeader set X-Forwarded-Proto "https"
     ProxyPass / http://172.17.0.1:5000/
     ProxyPassReverse / http://172.17.0.1:5000/
     ProxyPreserveHost On
     ProxyErrorOverride Off
-</VirtualHost>
-
-<VirtualHost *:80>
-    ServerName $subdomain.$vhost
-    RewriteEngine On
-    RedirectMatch 301 ^(?!/.well-known/acme-challenge/).* https://$subdomain.$vhost
-    RewriteCond %{HTTPS} !=on
-    RewriteRule (.*) https://%{SERVER_NAME}$1 [R,L]
-</VirtualHost>
-
-<VirtualHost *:80>
-    IncludeOptional conf.d/default-virtualhost.inc
 </VirtualHost>
 EOF
 }
